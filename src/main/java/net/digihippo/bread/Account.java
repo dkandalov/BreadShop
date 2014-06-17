@@ -16,15 +16,15 @@ public class Account {
 
     public int deposit(int creditAmount) {
         balance += creditAmount;
+        events.newAccountBalance(id, balance);
         return balance;
     }
 
     public void placeOrder(int orderId, int cost, int amount) {
         if (balance >= cost) {
             addOrder(orderId, amount);
-            int newBalance = deposit(-cost);
+            deposit(-cost);
             events.orderPlaced(id, amount);
-            events.newAccountBalance(id, newBalance);
         } else {
             events.orderRejected(id);
         }
@@ -40,9 +40,8 @@ public class Account {
             events.orderNotFound(id, orderId);
             return;
         }
-
-        int newBalance = deposit(cancelledQuantity * price);
         events.orderCancelled(id, orderId);
-        events.newAccountBalance(id, newBalance);
+
+        deposit(cancelledQuantity * price);
     }
 }

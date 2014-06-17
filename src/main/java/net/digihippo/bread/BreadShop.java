@@ -22,8 +22,7 @@ public class BreadShop {
     public void deposit(int accountId, int creditAmount) {
         Account account = accountRepository.getAccount(accountId);
         if (account != null) {
-            int newBalance = account.deposit(creditAmount);
-            events.newAccountBalance(accountId, newBalance);
+            account.deposit(creditAmount);
         } else {
             events.accountNotFound(accountId);
         }
