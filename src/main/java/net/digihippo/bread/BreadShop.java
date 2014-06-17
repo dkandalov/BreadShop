@@ -46,17 +46,7 @@ public class BreadShop {
             events.accountNotFound(accountId);
             return;
         }
-
-        Integer cancelledQuantity = account.cancelOrder(orderId);
-        if (cancelledQuantity == null)
-        {
-            events.orderNotFound(accountId, orderId);
-            return;
-        }
-
-        int newBalance = account.deposit(cancelledQuantity * PRICE_OF_BREAD);
-        events.orderCancelled(accountId, orderId);
-        events.newAccountBalance(accountId, newBalance);
+        account.cancelOrder(orderId, PRICE_OF_BREAD);
     }
 
     public void placeWholesaleOrder() {

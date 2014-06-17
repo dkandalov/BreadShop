@@ -19,10 +19,6 @@ public class Account {
         return balance;
     }
 
-    public Integer cancelOrder(int orderId) {
-        return orders.remove(orderId);
-    }
-
     public void placeOrder(int orderId, int cost, int amount) {
         if (balance >= cost) {
             addOrder(orderId, amount);
@@ -36,5 +32,17 @@ public class Account {
 
     private void addOrder(int orderId, int amount) {
         orders.put(orderId, amount);
+    }
+
+    public void cancelOrder(int orderId, int price) {
+        Integer cancelledQuantity = orders.remove(orderId);
+        if (cancelledQuantity == null) {
+            events.orderNotFound(id, orderId);
+            return;
+        }
+
+        int newBalance = deposit(cancelledQuantity * price);
+        events.orderCancelled(id, orderId);
+        events.newAccountBalance(id, newBalance);
     }
 }
