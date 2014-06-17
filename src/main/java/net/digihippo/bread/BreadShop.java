@@ -1,5 +1,8 @@
 package net.digihippo.bread;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BreadShop {
     public static int PRICE_OF_BREAD = 12;
 
@@ -11,7 +14,7 @@ public class BreadShop {
     }
 
     public void createAccount(int id) {
-        Account newAccount = new Account();
+        Account newAccount = new Account(id, events);
         accountRepository.addAccount(id, newAccount);
         events.accountCreatedSuccessfully(id);
     }
@@ -19,7 +22,7 @@ public class BreadShop {
     public void deposit(int accountId, int creditAmount) {
         Account account = accountRepository.getAccount(accountId);
         if (account != null) {
-            final int newBalance = account.deposit(creditAmount);
+            int newBalance = account.deposit(creditAmount);
             events.newAccountBalance(accountId, newBalance);
         } else {
             events.accountNotFound(accountId);
@@ -30,14 +33,7 @@ public class BreadShop {
         Account account = accountRepository.getAccount(accountId);
         if (account != null) {
             int cost = amount * PRICE_OF_BREAD;
-            if (account.getBalance() >= cost) {
-                account.addOrder(orderId, amount);
-                int newBalance = account.deposit(-cost);
-                events.orderPlaced(accountId, amount);
-                events.newAccountBalance(accountId, newBalance);
-            } else {
-                events.orderRejected(accountId);
-            }
+            account.placeOrder(orderId, cost, amount);
         } else {
             events.accountNotFound(accountId);
         }
@@ -69,5 +65,17 @@ public class BreadShop {
 
     public void onWholesaleOrder(int quantity) {
         throw new UnsupportedOperationException("Implement me in Objective B");
+    }
+
+    private static class AccountRepository {
+        private final Map<Integer, Account> accounts = new HashMap<Integer, Account>();
+
+        void addAccount(int id, Account newAccount) {
+            accounts.put(id, newAccount);
+        }
+
+        Account getAccount(int accountId) {
+            return accounts.get(accountId);
+        }
     }
 }
