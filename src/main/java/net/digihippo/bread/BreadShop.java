@@ -7,7 +7,7 @@ public class BreadShop {
     public static int PRICE_OF_BREAD = 12;
 
     private final OutboundEvents events;
-    private final AccountRepository accountRepository = new AccountRepository();
+    private final Map<Integer, Account> accounts = new HashMap<Integer, Account>();
 
     public BreadShop(OutboundEvents events) {
         this.events = events;
@@ -15,12 +15,12 @@ public class BreadShop {
 
     public void createAccount(int id) {
         Account newAccount = new Account(id, events);
-        accountRepository.addAccount(id, newAccount);
+        addAccount(id, newAccount);
         events.accountCreatedSuccessfully(id);
     }
 
     public void deposit(int accountId, int creditAmount) {
-        Account account = accountRepository.getAccount(accountId);
+        Account account = getAccount(accountId);
         if (account != null) {
             account.deposit(creditAmount);
         } else {
@@ -29,7 +29,7 @@ public class BreadShop {
     }
 
     public void placeOrder(int accountId, int orderId, int amount) {
-        Account account = accountRepository.getAccount(accountId);
+        Account account = getAccount(accountId);
         if (account != null) {
             int cost = amount * PRICE_OF_BREAD;
             account.placeOrder(orderId, cost, amount);
@@ -39,7 +39,7 @@ public class BreadShop {
     }
 
     public void cancelOrder(int accountId, int orderId) {
-        Account account = accountRepository.getAccount(accountId);
+        Account account = getAccount(accountId);
         if (account == null)
         {
             events.accountNotFound(accountId);
@@ -49,22 +49,22 @@ public class BreadShop {
     }
 
     public void placeWholesaleOrder() {
-        throw new UnsupportedOperationException("Implement me in Objective A");
+        OrderAccumulator accumulator = new OrderAccumulator(events);
+        for (Account account : accounts.values()) {
+            account.accumulateOrdersInto(accumulator);
+        }
+        accumulator.finished();
     }
 
     public void onWholesaleOrder(int quantity) {
         throw new UnsupportedOperationException("Implement me in Objective B");
     }
 
-    private static class AccountRepository {
-        private final Map<Integer, Account> accounts = new HashMap<Integer, Account>();
+    private void addAccount(int id, Account newAccount) {
+        accounts.put(id, newAccount);
+    }
 
-        void addAccount(int id, Account newAccount) {
-            accounts.put(id, newAccount);
-        }
-
-        Account getAccount(int accountId) {
-            return accounts.get(accountId);
-        }
+    private Account getAccount(int accountId) {
+        return accounts.get(accountId);
     }
 }

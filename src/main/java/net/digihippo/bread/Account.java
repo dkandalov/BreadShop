@@ -44,4 +44,10 @@ public class Account {
 
         deposit(cancelledQuantity * price);
     }
+
+    public void accumulateOrdersInto(OrderAccumulator accumulator) {
+        for (Integer quantity : orders.values()) {
+            accumulator.accumulate(quantity);
+        }
+    }
 }
