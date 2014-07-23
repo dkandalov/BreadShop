@@ -1,13 +1,13 @@
 package net.digihippo.bread;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class Account {
     private final int id;
     private final OutboundEvents events;
     private int balance = 0;
-    private final Map<Integer, Integer> orders = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> quantityByOrderId = new TreeMap<Integer, Integer>();
 
     public Account(int id, OutboundEvents events) {
         this.id = id;
@@ -31,11 +31,11 @@ public class Account {
     }
 
     private void addOrder(int orderId, int amount) {
-        orders.put(orderId, amount);
+        quantityByOrderId.put(orderId, amount);
     }
 
     public void cancelOrder(int orderId, int price) {
-        Integer cancelledQuantity = orders.remove(orderId);
+        Integer cancelledQuantity = quantityByOrderId.remove(orderId);
         if (cancelledQuantity == null) {
             events.orderNotFound(id, orderId);
             return;
@@ -45,9 +45,26 @@ public class Account {
         deposit(cancelledQuantity * price);
     }
 
-    public void accumulateOrdersInto(OrderAccumulator accumulator) {
-        for (Integer quantity : orders.values()) {
+    public void accumulateOrdersInto(QuantityAccumulator accumulator) {
+        for (Integer quantity : quantityByOrderId.values()) {
             accumulator.accumulate(quantity);
+        }
+    }
+
+    public void fulfillOrders(OrderFiller orderFiller) {
+        for (Map.Entry<Integer, Integer> entry : quantityByOrderId.entrySet()) {
+            int orderId = entry.getKey();
+            int quantity = entry.getValue();
+            orderFiller.tryToFill(this, id, orderId, quantity, events);
+        }
+    }
+
+    public void orderFilled(int orderId, int quantity) {
+        int newQuantity = quantityByOrderId.get(orderId) - quantity;
+        if (newQuantity == 0) {
+            quantityByOrderId.remove(orderId);
+        } else {
+            quantityByOrderId.put(orderId, quantity);
         }
     }
 }

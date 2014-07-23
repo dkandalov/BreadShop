@@ -49,7 +49,7 @@ public class BreadShop {
     }
 
     public void placeWholesaleOrder() {
-        OrderAccumulator accumulator = new OrderAccumulator(events);
+        QuantityAccumulator accumulator = new QuantityAccumulator(events);
         for (Account account : accounts.values()) {
             account.accumulateOrdersInto(accumulator);
         }
@@ -57,7 +57,10 @@ public class BreadShop {
     }
 
     public void onWholesaleOrder(int quantity) {
-        throw new UnsupportedOperationException("Implement me in Objective B");
+        OrderFiller orderFiller = new OrderFiller(quantity);
+        for (Account account : accounts.values()) {
+            account.fulfillOrders(orderFiller);
+        }
     }
 
     private void addAccount(int id, Account newAccount) {

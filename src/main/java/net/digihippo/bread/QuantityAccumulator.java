@@ -1,10 +1,10 @@
 package net.digihippo.bread;
 
-public class OrderAccumulator {
+public class QuantityAccumulator {
     private final OutboundEvents events;
     private int totalQuantity;
 
-    public OrderAccumulator(OutboundEvents events) {
+    public QuantityAccumulator(OutboundEvents events) {
         this.events = events;
     }
 
