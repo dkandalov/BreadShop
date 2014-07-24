@@ -36,7 +36,7 @@ public class Account {
 
     public void cancelOrder(int orderId, int price) {
         Integer cancelledQuantity = quantityByOrderId.remove(orderId);
-        if (cancelledQuantity == null) {
+        if (cancelledQuantity == null || cancelledQuantity == 0) {
             events.orderNotFound(id, orderId);
             return;
         }
@@ -61,10 +61,6 @@ public class Account {
 
     public void orderFilled(int orderId, int quantity) {
         int newQuantity = quantityByOrderId.get(orderId) - quantity;
-        if (newQuantity == 0) {
-            quantityByOrderId.remove(orderId);
-        } else {
-            quantityByOrderId.put(orderId, quantity);
-        }
+        quantityByOrderId.put(orderId, newQuantity);
     }
 }
