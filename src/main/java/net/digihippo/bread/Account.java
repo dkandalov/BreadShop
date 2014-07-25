@@ -7,7 +7,7 @@ public class Account {
     private final int id;
     private final OutboundEvents events;
     private int balance = 0;
-    private final Map<Integer, Integer> quantityByOrderId = new TreeMap<Integer, Integer>();
+    private final Map<Integer, Order> ordersById = new TreeMap<Integer, Order>();
 
     public Account(int id, OutboundEvents events) {
         this.id = id;
@@ -31,36 +31,46 @@ public class Account {
     }
 
     private void addOrder(int orderId, int amount) {
-        quantityByOrderId.put(orderId, amount);
+        ordersById.put(orderId, new Order(orderId, amount));
     }
 
     public void cancelOrder(int orderId, int price) {
-        Integer cancelledQuantity = quantityByOrderId.remove(orderId);
-        if (cancelledQuantity == null || cancelledQuantity == 0) {
+        Order cancelledOrder = ordersById.remove(orderId);
+        if (cancelledOrder == null || cancelledOrder.quantity == 0) {
             events.orderNotFound(id, orderId);
             return;
         }
         events.orderCancelled(id, orderId);
 
-        deposit(cancelledQuantity * price);
+        deposit(cancelledOrder.quantity * price);
     }
 
     public void accumulateOrdersInto(QuantityAccumulator accumulator) {
-        for (Integer quantity : quantityByOrderId.values()) {
-            accumulator.accumulate(quantity);
+        for (Order order : ordersById.values()) {
+            accumulator.accumulate(order.quantity);
         }
     }
 
-    public void fulfillOrders(OrderFiller orderFiller) {
-        for (Map.Entry<Integer, Integer> entry : quantityByOrderId.entrySet()) {
-            int orderId = entry.getKey();
-            int quantity = entry.getValue();
-            orderFiller.tryToFill(this, id, orderId, quantity, events);
+    public void fulfillOrders(WholesaleOrder wholesaleOrder) {
+        for (Order order : ordersById.values()) {
+            wholesaleOrder.tryToFill(order.quantity, order.id, this);
         }
     }
 
     public void orderFilled(int orderId, int quantity) {
-        int newQuantity = quantityByOrderId.get(orderId) - quantity;
-        quantityByOrderId.put(orderId, newQuantity);
+        int newQuantity = ordersById.get(orderId).quantity - quantity;
+        ordersById.put(orderId, new Order(orderId, newQuantity));
+
+        events.orderFilled(id, orderId, quantity);
+    }
+
+    private static class Order {
+        private final int id;
+        private final int quantity;
+
+        public Order(int id, int quantity) {
+            this.id = id;
+            this.quantity = quantity;
+        }
     }
 }

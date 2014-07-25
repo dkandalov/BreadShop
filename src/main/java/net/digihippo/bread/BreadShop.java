@@ -57,9 +57,9 @@ public class BreadShop {
     }
 
     public void onWholesaleOrder(int quantity) {
-        OrderFiller orderFiller = new OrderFiller(quantity);
+        WholesaleOrder wholesaleOrder = new WholesaleOrder(quantity);
         for (Account account : accounts.values()) {
-            account.fulfillOrders(orderFiller);
+            account.fulfillOrders(wholesaleOrder);
         }
     }
 
